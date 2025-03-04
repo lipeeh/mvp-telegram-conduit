@@ -1,0 +1,26 @@
+
+version: '3.8'
+
+services:
+  telegram-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./tdlib-db:/app/tdlib-db
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Defina suas credenciais do Telegram (obtenha em https://my.telegram.org/apps)
+      - TELEGRAM_API_ID=your_api_id
+      - TELEGRAM_API_HASH=your_api_hash
+      # Opcional: defina uma API Key fixa ou deixe em branco para gerar uma
+      - API_KEY=
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge

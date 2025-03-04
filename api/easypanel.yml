@@ -1,0 +1,24 @@
+
+# Configuração para EasyPanel
+name: telegram-conduit-api
+image: ${IMAGE}
+port: 3000
+env:
+  - name: TELEGRAM_API_ID
+    value: "your_api_id"
+  - name: TELEGRAM_API_HASH
+    value: "your_api_hash"
+  - name: NODE_ENV
+    value: "production"
+  - name: PORT
+    value: "3000"
+persist:
+  - path: /app/tdlib-db
+    name: tdlib-data
+  - path: /app/logs
+    name: api-logs
+volumes:
+  - name: tdlib-data
+    size: 5Gi
+  - name: api-logs
+    size: 1Gi

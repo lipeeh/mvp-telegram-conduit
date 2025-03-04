@@ -1,0 +1,8 @@
+
+node_modules
+npm-debug.log
+logs
+tdlib-db
+.git
+.github
+.gitignore
