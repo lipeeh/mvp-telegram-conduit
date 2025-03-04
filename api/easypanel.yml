@@ -4,21 +4,47 @@ name: telegram-conduit-api
 image: ${IMAGE}
 port: 3000
 env:
+  # Credenciais do Telegram - Obtenha em https://my.telegram.org/apps
   - name: TELEGRAM_API_ID
-    value: "your_api_id"
+    value: ""  # Substitua com seu API ID
   - name: TELEGRAM_API_HASH
-    value: "your_api_hash"
+    value: ""  # Substitua com seu API Hash
+  
+  # Configurações da API
   - name: NODE_ENV
     value: "production"
   - name: PORT
     value: "3000"
+  
+  # IMPORTANTE: Defina uma chave API segura para autenticação da API
+  # Deixe em branco para gerar automaticamente
+  - name: API_KEY
+    value: ""
+  
+  # Configurações de log (opcional)
+  - name: LOG_LEVEL
+    value: "info"  # Níveis: error, warn, info, debug
+
+# Volumes para persistência
 persist:
   - path: /app/tdlib-db
     name: tdlib-data
   - path: /app/logs
     name: api-logs
+
+# Definição de volumes - ajuste o tamanho conforme necessário
 volumes:
   - name: tdlib-data
-    size: 5Gi
+    size: 5Gi  # Armazena dados do Telegram
   - name: api-logs
-    size: 1Gi
+    size: 1Gi  # Armazena logs da aplicação
+
+# Configurações de rede
+# ports:
+#   - name: https
+#     port: 443
+
+# Configurações de recursos (opcional)
+# resources:
+#   cpu: 1
+#   memory: 1Gi

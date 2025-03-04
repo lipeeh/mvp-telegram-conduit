@@ -14,10 +14,11 @@ API simples para conectar o Telegram com o N8N, permitindo recuperação de mens
 
 - Node.js 14+ ou Docker
 - Credenciais Telegram (api_id e api_hash) de https://my.telegram.org/apps
+- EasyPanel para deploy (ou Docker para execução local)
 
 ## Instalação
 
-### Usando Docker (recomendado)
+### Usando Docker (execução local)
 
 1. Clone o repositório:
    ```
@@ -37,41 +38,70 @@ API simples para conectar o Telegram com o N8N, permitindo recuperação de mens
    docker-compose up -d
    ```
 
-### Instalação Manual
+### Deploy no EasyPanel
 
-1. Clone o repositório:
-   ```
-   git clone https://github.com/seu-usuario/telegram-conduit-api.git
-   cd telegram-conduit-api
-   ```
+#### Pré-requisitos:
+- Servidor com EasyPanel instalado
+- Acesso ao EasyPanel via interface web
+- Credenciais Telegram (api_id e api_hash)
 
-2. Instale as dependências:
-   ```
-   npm install
-   ```
+#### Passo a passo:
 
-3. Instale o TDLib seguindo as instruções em: https://github.com/tdlib/td#building
+1. **Obtenha credenciais do Telegram**
+   - Acesse https://my.telegram.org/apps
+   - Faça login com sua conta Telegram
+   - Crie um novo aplicativo se necessário
+   - Anote o `api_id` e `api_hash`
 
-4. Configure as variáveis de ambiente:
-   ```
-   export TELEGRAM_API_ID=your_api_id
-   export TELEGRAM_API_HASH=your_api_hash
-   ```
+2. **Acesse o EasyPanel**
+   - Entre no painel administrativo do EasyPanel
+   - Navegue até a seção "Applications" ou "Apps"
+   - Clique em "New Application" ou "Add App"
 
-5. Inicie a aplicação:
-   ```
-   npm start
-   ```
+3. **Configure a nova aplicação**
+   - Selecione "Deploy from Template" ou "Custom Application"
+   - Escolha o método "YAML Configuration"
+   - Cole o conteúdo do arquivo `easypanel.yml` no editor
+   - Substitua os valores de `TELEGRAM_API_ID` e `TELEGRAM_API_HASH` pelos seus
+   - Ajuste outros parâmetros como nome e tamanho de volumes conforme necessário
+   - Defina uma senha forte para a variável `API_KEY` (ou deixe em branco para geração automática)
+
+4. **Configure o build da aplicação**
+   - Selecione a opção de build a partir de repositório Git
+   - Informe a URL do repositório (ou faça upload do código-fonte)
+   - Certifique-se de que o EasyPanel detectou o Dockerfile corretamente
+
+5. **Inicie o deploy**
+   - Clique em "Deploy" ou "Create Application"
+   - Aguarde a conclusão do processo de build e deploy
+   - O EasyPanel mostrará logs do processo que você pode acompanhar
+
+6. **Verifique o status**
+   - Após o deploy, acesse a URL fornecida pelo EasyPanel
+   - Deve aparecer a interface da API Telegram Conduit
+   - Siga o processo de autenticação na interface
+
+7. **Configure proxies (opcional)**
+   - É recomendável configurar um proxy reverso com HTTPS
+   - No EasyPanel, você pode ativar o proxy HTTPS integrado
+   - Alternativamente, configure Nginx ou Traefik para gerenciar o tráfego
+
+#### Solução de problemas comuns:
+
+- **Erro de autenticação Telegram**: Verifique se api_id e api_hash estão corretos
+- **Container não inicia**: Verifique os logs do contêiner para identificar o problema
+- **Problemas de permissão**: Verifique se os volumes têm permissões corretas
+- **API não acessível**: Verifique as configurações de rede e firewall
 
 ## Uso
 
-Após a inicialização, a API estará disponível em `http://localhost:3000`.
+Após a inicialização, a API estará disponível em `http://seu-dominio.com` ou `http://seu-ip:3000`.
 
 A primeira vez que você executar a API, será necessário se autenticar com sua conta do Telegram:
 
 1. **Enviar o número de telefone**:
    ```
-   curl -X POST http://localhost:3000/api/telegram/auth/phone \
+   curl -X POST http://seu-dominio.com/api/telegram/auth/phone \
      -H "Content-Type: application/json" \
      -H "X-API-Key: sua_api_key" \
      -d '{"phone": "+5511999999999"}'
@@ -79,7 +109,7 @@ A primeira vez que você executar a API, será necessário se autenticar com sua
 
 2. **Verificar o código recebido**:
    ```
-   curl -X POST http://localhost:3000/api/telegram/auth/code \
+   curl -X POST http://seu-dominio.com/api/telegram/auth/code \
      -H "Content-Type: application/json" \
      -H "X-API-Key: sua_api_key" \
      -d '{"code": "12345"}'
@@ -87,57 +117,41 @@ A primeira vez que você executar a API, será necessário se autenticar com sua
 
 3. **Se necessário, verificar a senha de dois fatores**:
    ```
-   curl -X POST http://localhost:3000/api/telegram/auth/password \
+   curl -X POST http://seu-dominio.com/api/telegram/auth/password \
      -H "Content-Type: application/json" \
      -H "X-API-Key: sua_api_key" \
      -d '{"password": "sua_senha"}'
    ```
 
-## Endpoints da API
+## Manutenção e Atualização
 
-### Autenticação
+Para atualizar a API no EasyPanel:
 
-- `POST /api/telegram/auth/phone` - Envia código para número de telefone
-- `POST /api/telegram/auth/code` - Verifica código recebido
-- `POST /api/telegram/auth/password` - Verifica senha de dois fatores
-- `GET /api/telegram/auth/status` - Verifica status de autenticação
+1. Acesse o painel de controle do EasyPanel
+2. Localize sua aplicação na lista
+3. Clique em "Rebuild" ou "Update"
+4. Se necessário, atualize as configurações YAML
+5. Inicie o processo de rebuild
 
-### Chats
+## Monitoramento e Logs
 
-- `GET /api/chats` - Lista todos os chats
-- `GET /api/chats/:chatId` - Obtém detalhes de um chat
-- `GET /api/chats/:chatId/messages` - Lista mensagens de um chat
-
-### Mensagens
-
-- `GET /api/messages/:messageId` - Obtém detalhes de uma mensagem
-
-### Arquivos
-
-- `GET /api/files/:fileId/info` - Obtém informações sobre um arquivo
-- `GET /api/files/:fileId/download` - Baixa um arquivo
-
-### Status
-
-- `GET /api/status` - Verifica status da API
-
-## Integração com N8N
-
-Para usar esta API com o N8N:
-
-1. Adicione um nó "HTTP Request" no seu workflow
-2. Configure a URL para apontar para o endpoint da API
-3. Adicione o cabeçalho `X-API-Key` com a sua chave API
-4. Configure o método (GET, POST, etc) e o corpo da requisição conforme necessário
+- Os logs da aplicação são armazenados no volume `api-logs`
+- Você pode visualizar os logs pelo painel do EasyPanel
+- Para depuração avançada, acesse os logs diretamente:
+  ```
+  docker logs -f telegram-conduit-api
+  ```
 
 ## Segurança
 
-Esta API é destinada apenas para uso em MVPs e ambientes de desenvolvimento. Para ambientes de produção, considere:
+Esta API é destinada para uso em MVPs e ambientes de desenvolvimento. Para ambientes de produção, considere:
 
 1. Implementar autenticação mais robusta
-2. Adicionar HTTPS
+2. Adicionar HTTPS (obrigatório)
 3. Implementar limites de taxa mais rigorosos
 4. Adicionar validação de entrada mais completa
+5. Implementar registro de auditoria
+6. Configurar backups regulares da pasta tdlib-db
 
 ## Licença
 
