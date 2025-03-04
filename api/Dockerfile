@@ -1,5 +1,5 @@
 
-FROM node:16-bullseye
+FROM node:18-bullseye-slim
 
 # Definir variáveis de ambiente
 ENV NODE_ENV=production
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     zlib1g-dev \
     git \
+    ca-certificates \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,23 +24,27 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependências Node.js
-RUN npm install --production
+RUN npm ci --only=production
 
-# Compilar TDLib da fonte
-RUN git clone https://github.com/tdlib/td.git \
-    && cd td \
-    && mkdir build \
-    && cd build \
-    && cmake -DCMAKE_BUILD_TYPE=Release .. \
-    && cmake --build . --target install \
-    && cd ../.. \
-    && rm -rf td
+# Compilar TDLib da fonte com melhor gestão de erros
+RUN git clone --depth 1 https://github.com/tdlib/td.git && \
+    cd td && \
+    mkdir -p build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    cmake --build . --target install -- -j$(nproc) && \
+    cd ../.. && \
+    rm -rf td
 
 # Copiar o código da aplicação
 COPY . .
 
 # Criar diretórios necessários
-RUN mkdir -p logs tdlib-db
+RUN mkdir -p logs tdlib-db && \
+    chmod 777 logs tdlib-db
+
+# Verificação de integridade
+RUN node -e "console.log('Node.js environment is working')"
 
 # Expor a porta da API
 EXPOSE 3000
